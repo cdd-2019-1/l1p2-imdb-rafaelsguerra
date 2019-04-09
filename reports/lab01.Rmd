@@ -1,0 +1,85 @@
+---
+title: "Lab 01"
+author: "Rafael de Souza Guerra"
+date: "8 de abril de 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(ggbeeswarm)
+```
+
+Carregando dados:
+
+```{r}
+dados = read_csv("../data/series_from_imdb.csv.zip", col_types = "ccdcdcdddddddddddd")
+```
+
+
+##Pergunta 1
+<b>Quais são as 5 séries mais bem avaliadas de modo geral, considerando todos os seus episódios?</b>
+
+Considerando a média como medida de avaliação, é possível responder com a seguinte consulta:
+
+```{r echo=FALSE}
+dados %>% group_by(series_name) %>% summarise_at(vars(UserRating), list(~mean(., na.rm = TRUE))) %>% arrange(desc(UserRating)) %>% top_n(5)
+```
+
+Surpreendentemente, é possível verificar que Galera do barulho, com seu último episódio indo ao ar a mais de 20 anos, mantém uma média geral superior a de séries mais recentes e populares, como Game of Thrones e Caçadores de Sombras. Vale salientar que Cosmos e Yeh Meri Family, tiveram apenas uma temporada, sendo que a última tenha uma possível continuação.
+
+
+<b> Obs.: no restante deste lab, iremos analisar estas 5 séries citadas.</b>
+```{r}
+top5 = dados %>% filter(series_name %in% c("Yeh Meri Family", "Galera do Barulho", "Game of Thrones", "Caçadores de Sombras", "Cosmos: Uma Odisséia do Espaço-Tempo"))
+```
+
+## Pergunta 2
+<b>Dentre estas séries, como as avaliações se comportam no decorrer dos episódios? Existe alguma tendência?</b>
+
+Para fins de organização e detalhes, essa pergunta será respondida por meio de vários graficos:
+
+```{r}
+top5 %>% filter(series_name == "Yeh Meri Family") %>% ggplot() + geom_line(mapping = aes(x = series_ep, y = UserRating)) + geom_point(mapping = aes(x = series_ep, y = UserRating)) + labs(title = "Notas dos episódios de Yeh Meri Family")
+```
+
+Aqui podemos observar que a série, no geral, se manteve num crescimento relativamente estável, com o último episódio obtendo notas maiores que o primeiro.
+
+```{r}
+top5 %>% filter(series_name == "Galera do Barulho") %>% ggplot() + geom_line(mapping = aes(x = series_ep, y = UserRating)) + geom_point(mapping = aes(x = series_ep, y = UserRating, color = season)) + labs(title = "Notas dos episódios de Galera do Barulho")
+```
+
+Em Galera do Barulho, podemos observar que a série se manteve bem estável, com um leve crescimento nas avaliações. É importante observar que houveram dois episódios bem abaixo da média da série.
+
+
+```{r}
+top5 %>% filter(series_name == "Game of Thrones") %>% ggplot() + geom_line(mapping = aes(x = series_ep, y = UserRating)) + geom_point(mapping = aes(x = series_ep, y = UserRating, color = season)) + labs(title = "Notas dos episódios de Game of Thrones")
+```
+
+Em Game of Thrones, a variação das avaliações não nos permite identificar uma tendência, mas é possível identificar a diferença entre a pior avaliação com nota um pouco maior que 8 e as quatro maiores avaliações, que quase atingiram nota 10
+
+
+```{r}
+top5 %>% filter(series_name == "Caçadores de Sombras") %>% ggplot() + geom_line(mapping = aes(x = series_ep, y = UserRating)) + geom_point(mapping = aes(x = series_ep, y = UserRating, color = season)) + labs(title = "Notas dos episódios de Caçadores de Sombras")
+```
+
+Em Caçadores de Sombras, é possível identificar um enorme avanço no decorrer da série, mas que na sua última temporada, obteve uma drástica queda. 
+
+
+```{r}
+top5 %>% filter(series_name == "Cosmos: Uma Odisséia do Espaço-Tempo") %>% ggplot() + geom_line(mapping = aes(x = series_ep, y = UserRating)) + geom_point(mapping = aes(x = series_ep, y = UserRating, color = season)) + labs(title = "Notas dos episódios de Cosmos: Uma Odisséia do Espaço-Tempo")
+```
+
+Em Cosmos: Uma Odisséia do Espaço-Tempo, é possível verificar que a série sofreu um declínio no meio da temporada, mas conseguiu se redimir e fechou seu episódio final com nota superior à do primeiro.
+
+##Pergunta 3
+<b>Há alguma relação entre as notas obtidas nos episódios e o numero de pessoas que os avaliaram?</b>
+
+Tomando por exemplo a série Game of Thrones:
+```{r}
+top5 %>% filter(series_name == "Game of Thrones") %>% ggplot() + geom_line(mapping = aes(x = series_ep, y = UserVotes, color = as.character(season))) + geom_point(mapping = aes(x = series_ep, y = UserVotes, color = season))
+```
+
+Aqui podemos identificar que há pouca relação entre a nota obtida pelo episódio e o número de votantes. O sexto episódio da quinta temporada foi o mais criticado e obteve cerca de vinte mil avaliações. O nono episódio da sexta temporada obteve grande número de votantes e uma das mais altas avaliações, mas isso não é o caaso para os outros episódios que tambem obtiveram boas notas.
